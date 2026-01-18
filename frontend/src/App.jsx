@@ -10,16 +10,17 @@ import {
   Laptop,
   Leaf,
   Moon,
-  Send,
   Share2,
   Sun,
   Wifi,
-  X,
   Zap,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import ChartTooltip from "./components/ChartTooltip.jsx";
 import DigitalTwin from "./components/DigitalTwin.jsx";
+import EnergyGauge from "./components/EnergyGauge.jsx";
+import SectionCard from "./components/SectionCard.jsx";
+import SectionChat from "./components/SectionChat.jsx";
+import SectionControls from "./components/SectionControls.jsx";
 import WorldMap from "./components/WorldMap.jsx";
 import {
   Area,
@@ -31,10 +32,18 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import {
+  clamp,
+  formatBytes,
+  formatCo2,
+  formatMs,
+  formatRate,
+  formatTemp,
+  heatColor,
+} from "./utils/formatters.js";
 
 const MAX_POINTS = 60;
-const ENERGY_MAX_WATTS = 30;
-const MAP_LINGER_MS = 10000;
+const MAP_LINGER_MS = 20000;
 const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000/ws";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/explain";
 const SECTION_TITLES = {
@@ -50,274 +59,6 @@ const SECTION_TITLES = {
   snapshot: "Snapshot",
 };
 const LEFT_SECTIONS = new Set(["cpu", "digitalTwin", "network", "worldMap"]);
-
-const formatBytes = (value) => {
-  if (!Number.isFinite(value)) return "--";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let size = value;
-  let unitIndex = 0;
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex += 1;
-  }
-  return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
-};
-
-const formatRate = (value) => {
-  if (!Number.isFinite(value)) return "--";
-  return `${value.toFixed(2)} MB/s`;
-};
-
-const formatTemp = (value) => {
-  if (!Number.isFinite(value)) return "--";
-  return `${value.toFixed(1)} deg C`;
-};
-
-const formatCo2 = (grams) => {
-  if (!Number.isFinite(grams)) return "--";
-  if (grams >= 1000) return `${(grams / 1000).toFixed(4)} kg`;
-  return `${grams.toFixed(4)} g`;
-};
-
-const formatMs = (value) => {
-  if (!Number.isFinite(value)) return "--";
-  return `${value.toFixed(1)} ms`;
-};
-
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-
-const heatColor = (value) => {
-  const bounded = clamp(value, 0, 100);
-  const hue = 190 - bounded * 1.6;
-  return `hsl(${hue}, 80%, 55%)`;
-};
-
-const EnergyGauge = ({ wattage, source, theme }) => {
-  const isLight = theme === "light";
-  const safeWattage = Number.isFinite(wattage) ? wattage : 0;
-  const percent = clamp(safeWattage / ENERGY_MAX_WATTS, 0, 1);
-  const energyColor =
-    safeWattage <= 6 ? "#22c55e" : safeWattage <= 15 ? "#f59e0b" : "#ef4444";
-  const ringStyle = {
-    background: `conic-gradient(${energyColor} 0deg ${
-      percent * 360
-    }deg, rgba(148,163,184,0.2) ${percent * 360}deg 360deg)`,
-  };
-  const radius = 52;
-  const circumference = 2 * Math.PI * radius;
-  const dashOffset = circumference * (1 - percent);
-
-  return (
-    <div className="flex items-center gap-6">
-      <div className="relative flex h-36 w-36 items-center justify-center">
-        {isLight ? (
-          <svg
-            className="absolute inset-0"
-            viewBox="0 0 120 120"
-            aria-hidden="true"
-          >
-            <circle
-              cx="60"
-              cy="60"
-              r={radius}
-              fill="none"
-              stroke="rgba(15, 23, 42, 0.15)"
-              strokeWidth="8"
-            />
-            <circle
-              cx="60"
-              cy="60"
-              r={radius}
-              fill="none"
-              stroke={energyColor}
-              strokeWidth="8"
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={dashOffset}
-              transform="rotate(-90 60 60)"
-            />
-          </svg>
-        ) : (
-          <div
-            className="absolute inset-0 rounded-full p-[2px]"
-            style={ringStyle}
-          />
-        )}
-        <div className="relative flex h-28 w-28 flex-col items-center justify-center rounded-full bg-midnight-veil text-center shadow-inner">
-          <span className="text-2xl font-semibold text-white">
-            {Number.isFinite(wattage) ? wattage.toFixed(1) : "--"}
-          </span>
-          <span className="text-xs uppercase tracking-[0.3em] text-slate-400">
-            Watts
-          </span>
-        </div>
-      </div>
-      <div>
-        <p className="text-sm uppercase tracking-[0.3em] text-slate-400">
-          Energy Impact
-        </p>
-        <p className="mt-2 text-lg font-semibold text-white">
-          {Number.isFinite(wattage)
-            ? safeWattage <= 6
-              ? "Low"
-              : safeWattage <= 15
-              ? "Moderate"
-              : "High"
-            : "Unavailable"}
-        </p>
-        <p className="mt-1 text-xs text-slate-400">
-          {source ? `Source: ${source}` : "Awaiting energy metrics"}
-        </p>
-      </div>
-    </div>
-  );
-};
-
-const ChartTooltip = ({ active, payload, label, unit }) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="rounded-lg border border-white/10 bg-slate-900/90 px-3 py-2 text-xs text-slate-200 shadow-xl">
-      <p className="text-slate-400">{label}</p>
-      {payload.map((item) => (
-        <p key={item.name} className="mt-1">
-          <span className="mr-2 font-semibold text-white">{item.name}:</span>
-          {item.value.toFixed(2)} {unit}
-        </p>
-      ))}
-    </div>
-  );
-};
-
-const SectionControls = ({ onHelp, isLight }) => {
-  const baseClass = isLight
-    ? "border border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200"
-    : "border border-white/10 bg-white/10 text-slate-200 hover:bg-white/20";
-  return (
-    <button
-      type="button"
-      onClick={onHelp}
-      className={`${baseClass} rounded-full p-2 transition`}
-    title="Ask about this section"
-    aria-label="Ask about this section"
-  >
-      <img
-        src="/Group 1.png"
-        alt="Help"
-        className="h-9 w-9 object-contain"
-      />
-    </button>
-  );
-};
-
-const SectionChat = ({
-  title,
-  messages,
-  value,
-  onChange,
-  onSubmit,
-  onClose,
-  isLoading,
-  side,
-  theme,
-}) => {
-  const isLight = theme === "light";
-  const panelClass = isLight
-    ? "border-slate-200 bg-white text-slate-900"
-    : "border-white/10 bg-slate-950/90 text-slate-200";
-  const userBubble = isLight
-    ? "bg-cyan-500/10 text-slate-900"
-    : "bg-cyan-500/10 text-cyan-100";
-  const assistantBubble = isLight
-    ? "bg-slate-100 text-slate-700"
-    : "bg-white/5 text-slate-200";
-  const inputClass = isLight
-    ? "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-cyan-500/40"
-    : "border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus:ring-cyan-400/40";
-  const sendClass = isLight
-    ? "border-slate-200 bg-cyan-500/10 text-cyan-700 hover:bg-cyan-500/20"
-    : "border-white/10 bg-cyan-400/20 text-cyan-200 hover:bg-cyan-400/40";
-  const sideClass =
-    side === "left"
-      ? "left-4 lg:-left-[400px]"
-      : "right-4 lg:-right-[400px]";
-  return (
-    <div
-      className={`absolute top-12 z-50 w-96 max-w-[92vw] rounded-2xl border p-3 shadow-2xl backdrop-blur-xl ${panelClass} ${sideClass}`}
-    >
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em]">
-          {title}
-        </p>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-full p-1 text-slate-400 transition hover:text-slate-200"
-          title="Close chat"
-          aria-label="Close chat"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="mt-3 max-h-80 space-y-3 overflow-y-auto pr-1 text-xs">
-        {messages.length === 0 ? (
-          <p className="text-slate-400">
-            Ask a question about this panel to get a focused explanation.
-          </p>
-        ) : (
-          messages.map((message, index) => (
-            <div
-              key={`${message.role}-${index}`}
-              className={`rounded-lg px-3 py-2 ${
-                message.role === "user" ? userBubble : assistantBubble
-              }`}
-            >
-              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400">
-                {message.role === "user" ? "You" : "Vulco"}
-              </p>
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                className="markdown mt-1"
-              >
-                {message.content}
-              </ReactMarkdown>
-            </div>
-          ))
-        )}
-        {isLoading && (
-          <p className="text-xs text-slate-400">
-            Vulco is analyzing your system...
-          </p>
-        )}
-      </div>
-      <form onSubmit={onSubmit} className="mt-3 flex items-center gap-2">
-        <input
-          value={value}
-          onChange={onChange}
-          placeholder="Ask about this section..."
-          className={`flex-1 rounded-full border px-3 py-2 text-xs focus:outline-none focus:ring-2 ${inputClass}`}
-        />
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={`rounded-full border p-2 transition disabled:opacity-50 ${sendClass}`}
-          title="Send"
-        >
-          <Send className="h-4 w-4" />
-        </button>
-      </form>
-    </div>
-  );
-};
-
-const SectionCard = ({ className, children, chat }) => {
-  const raised = Boolean(chat);
-  return (
-    <section className={`${className} relative ${raised ? "z-40" : ""}`}>
-      {children}
-      {chat}
-    </section>
-  );
-};
 
 export default function App() {
   const [metrics, setMetrics] = useState(null);
@@ -369,11 +110,20 @@ export default function App() {
           const ip = flow.ip || "unknown";
           const key = `${direction}-${ip}`;
           const existing = next.get(key);
-          next.set(key, {
+          const merged = {
             ...(existing || {}),
             ...flow,
             lastSeen: nowMs,
-          });
+          };
+          if (existing) {
+            if (!Number.isFinite(merged.lat)) {
+              merged.lat = existing.lat;
+            }
+            if (!Number.isFinite(merged.lon)) {
+              merged.lon = existing.lon;
+            }
+          }
+          next.set(key, merged);
         });
         for (const [key, value] of next) {
           const lastSeen = value?.lastSeen || 0;

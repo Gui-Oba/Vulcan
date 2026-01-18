@@ -7,6 +7,7 @@ import {
   Marker,
   ZoomableGroup,
 } from "react-simple-maps";
+import { Maximize2 } from "lucide-react";
 
 const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 const ORIGIN = {
@@ -85,7 +86,7 @@ export default function WorldMap({ flows, theme }) {
         </button>
         <button
           type="button"
-          className="h-8 w-8 rounded-full bg-white/10 text-[10px] uppercase tracking-[0.2em] transition hover:bg-white/20"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
           onClick={() =>
             setPosition({
               coordinates: [0, 20],
@@ -94,7 +95,7 @@ export default function WorldMap({ flows, theme }) {
           }
           title="Reset view"
         >
-          reset
+          <Maximize2 className={isLight ? "h-4 w-4 text-slate-600" : "h-4 w-4 text-slate-200"} />
         </button>
       </div>
       <ComposableMap
