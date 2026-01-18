@@ -45,9 +45,10 @@ export default function WorldMap({ flows, theme }) {
   const landStroke = isLight ? "#cbd5e1" : "#1f2a44";
   const outboundColor = isLight ? "#0ea5e9" : "#22d3ee";
   const inboundColor = isLight ? "#f59e0b" : "#fbbf24";
+  const defaultZoom = 1.2;
   const [position, setPosition] = useState({
-    coordinates: [0, 20],
-    zoom: 1,
+    coordinates: [0, 0],
+    zoom: defaultZoom,
   });
   const minZoom = 0.8;
   const maxZoom = 3.5;
@@ -60,7 +61,7 @@ export default function WorldMap({ flows, theme }) {
       <div className="absolute right-3 top-3 z-10 flex flex-col gap-2 rounded-full border border-white/10 bg-slate-900/70 p-1 text-xs text-slate-200 shadow">
         <button
           type="button"
-          className="h-8 w-8 rounded-full bg-white/10 transition hover:bg-white/20"
+          className="h-9 w-9 rounded-full bg-white/10 text-2xl font-semibold transition hover:bg-white/20"
           onClick={() =>
             setPosition((prev) => ({
               ...prev,
@@ -73,7 +74,7 @@ export default function WorldMap({ flows, theme }) {
         </button>
         <button
           type="button"
-          className="h-8 w-8 rounded-full bg-white/10 transition hover:bg-white/20"
+          className="h-9 w-9 rounded-full bg-white/10 text-2xl font-semibold transition hover:bg-white/20"
           onClick={() =>
             setPosition((prev) => ({
               ...prev,
@@ -86,11 +87,11 @@ export default function WorldMap({ flows, theme }) {
         </button>
         <button
           type="button"
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
           onClick={() =>
             setPosition({
-              coordinates: [0, 20],
-              zoom: 1,
+              coordinates: [0, 0],
+              zoom: defaultZoom,
             })
           }
           title="Reset view"
@@ -120,7 +121,19 @@ export default function WorldMap({ flows, theme }) {
                   fill={landFill}
                   stroke={landStroke}
                   strokeWidth={0.5}
-                  style={{ default: { outline: "none" } }}
+                  style={{
+                    default: { outline: "none" },
+                    hover: {
+                      outline: "none",
+                      fill: landFill,
+                      stroke: landStroke,
+                    },
+                    pressed: {
+                      outline: "none",
+                      fill: landFill,
+                      stroke: landStroke,
+                    },
+                  }}
                 />
               ))
             }
