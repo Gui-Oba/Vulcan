@@ -10,7 +10,6 @@ import {
   Laptop,
   Leaf,
   Moon,
-  Share2,
   Sun,
   Wifi,
   Zap,
@@ -27,7 +26,6 @@ import {
   AreaChart,
   CartesianGrid,
   ResponsiveContainer,
-  Sankey,
   Tooltip,
   XAxis,
   YAxis,
@@ -53,7 +51,6 @@ const SECTION_TITLES = {
   worldMap: "Live World Map",
   energy: "Energy Impact",
   carbon: "Carbon Footprint",
-  sankey: "Data Flow Sankey",
   memoryDisk: "Memory & Disk",
   processes: "Resource Hogs",
   snapshot: "Snapshot",
@@ -315,51 +312,6 @@ export default function App() {
     return sum / perCore.length;
   }, [metrics, perCore]);
 
-  const sankeyData = useMemo(() => {
-    if (!liveFlows.length) return null;
-    const nodes = [];
-    const nodeIndex = new Map();
-    const linkMap = new Map();
-
-    const addNode = (key, label) => {
-      if (nodeIndex.has(key)) return nodeIndex.get(key);
-      const index = nodes.length;
-      nodes.push({ name: key, label });
-      nodeIndex.set(key, index);
-      return index;
-    };
-
-    liveFlows
-      .filter((flow) => flow.direction === "outbound")
-      .forEach((flow) => {
-        const value = Number.isFinite(flow.mb_s) ? flow.mb_s : 0;
-        if (value <= 0) return;
-        const app = flow.app || "Unknown App";
-        const protocol = flow.protocol || "Other";
-        const country = flow.country || "Unknown";
-        const appIndex = addNode(`app:${app}`, app);
-        const protocolIndex = addNode(`protocol:${protocol}`, protocol);
-        const countryIndex = addNode(`country:${country}`, country);
-
-        const appKey = `${appIndex}-${protocolIndex}`;
-        const protocolKey = `${protocolIndex}-${countryIndex}`;
-        linkMap.set(appKey, {
-          source: appIndex,
-          target: protocolIndex,
-          value: (linkMap.get(appKey)?.value || 0) + value,
-        });
-        linkMap.set(protocolKey, {
-          source: protocolIndex,
-          target: countryIndex,
-          value: (linkMap.get(protocolKey)?.value || 0) + value,
-        });
-      });
-
-    const links = Array.from(linkMap.values());
-    if (!links.length) return null;
-    return { nodes, links };
-  }, [liveFlows]);
-
   const mapFlows = useMemo(() => {
     if (!flowCache.size) return [];
     return Array.from(flowCache.values())
@@ -390,11 +342,11 @@ export default function App() {
     ? "h-2 rounded-full bg-cyan-500"
     : "h-2 rounded-full bg-gradient-to-r from-cyan-400 via-cyan-300 to-sky-500";
   const memoryBarClass = isLight
-    ? "h-2 rounded-full bg-fuchsia-500"
-    : "h-2 rounded-full bg-gradient-to-r from-fuchsia-500 via-purple-400 to-cyan-400";
+    ? "h-2 rounded-full bg-blue-500"
+    : "h-2 rounded-full bg-blue-500";
   const swapBarClass = isLight
-    ? "h-2 rounded-full bg-rose-400"
-    : "h-2 rounded-full bg-gradient-to-r from-fuchsia-400 via-rose-400 to-amber-400";
+    ? "h-2 rounded-full bg-blue-500"
+    : "h-2 rounded-full bg-blue-500";
 
   return (
     <div className="min-h-screen text-slate-100">
@@ -894,72 +846,6 @@ export default function App() {
                     : "--"} global average.
                 </p>
               </div>
-            </SectionCard>
-
-            <SectionCard
-              className={panelClass}
-              chat={renderSectionChat("sankey")}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <Share2 className="h-5 w-5 text-cyan-300" />
-                  <div>
-                    <p className="text-sm font-semibold text-white">
-                      Data Flow Sankey
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      Apps to protocol to destination country
-                    </p>
-                  </div>
-                </div>
-                <SectionControls
-                  onHelp={() => toggleSectionChat("sankey")}
-                  isLight={isLight}
-                />
-              </div>
-              <div className="mt-4 h-64">
-                {sankeyData ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <Sankey
-                      data={sankeyData}
-                      nameKey="label"
-                      nodePadding={14}
-                      nodeWidth={18}
-                      linkCurvature={0.55}
-                      margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
-                      node={{
-                        fill: isLight ? "#94a3b8" : "#1e293b",
-                        stroke: isLight ? "#e2e8f0" : "#0f172a",
-                      }}
-                      link={{
-                        stroke: isLight ? "#0ea5e9" : "#22d3ee",
-                        strokeOpacity: isLight ? 0.3 : 0.35,
-                      }}
-                    >
-                      <Tooltip
-                        formatter={(value) =>
-                          `${Number(value).toFixed(3)} MB/s`
-                        }
-                        contentStyle={{
-                          background: isLight
-                            ? "rgba(248, 250, 252, 0.95)"
-                            : "rgba(15, 23, 42, 0.9)",
-                          border: "1px solid rgba(148, 163, 184, 0.2)",
-                          borderRadius: "8px",
-                        }}
-                        itemStyle={{ color: isLight ? "#0f172a" : "#e2e8f0" }}
-                      />
-                    </Sankey>
-                  </ResponsiveContainer>
-                ) : (
-                  <p className="text-xs text-slate-400">
-                    Waiting for outbound flow data...
-                  </p>
-                )}
-              </div>
-              <p className="mt-3 text-xs text-slate-400">
-                Based on real-time throughput over the last second.
-              </p>
             </SectionCard>
 
             <SectionCard
