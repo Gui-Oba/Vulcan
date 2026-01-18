@@ -1,0 +1,209 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font-family: "Space Grotesk", "IBM Plex Mono", ui-sans-serif, system-ui;
+  background: radial-gradient(
+      900px circle at 15% 15%,
+      rgba(34, 211, 238, 0.18),
+      transparent 55%
+    ),
+    radial-gradient(
+      700px circle at 80% 10%,
+      rgba(248, 113, 113, 0.12),
+      transparent 45%
+    ),
+    linear-gradient(160deg, #05070f 0%, #0b1222 55%, #0c0f1f 100%);
+  color: #e2e8f0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+body.theme-light {
+  color-scheme: light;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+body.theme-light .text-white {
+  color: #0f172a;
+}
+
+body.theme-light .text-slate-100 {
+  color: #0f172a;
+}
+
+body.theme-light .text-slate-200 {
+  color: #1f2937;
+}
+
+body.theme-light .text-slate-300 {
+  color: #334155;
+}
+
+body.theme-light .text-slate-400 {
+  color: #475569;
+}
+
+body.theme-light .text-slate-500 {
+  color: #64748b;
+}
+
+body.theme-light .text-slate-950\/90 {
+  color: #0f172a;
+}
+
+body.theme-light .text-cyan-100,
+body.theme-light .text-cyan-200,
+body.theme-light .text-cyan-200\/70,
+body.theme-light .text-cyan-300 {
+  color: #0e7490;
+}
+
+body.theme-light .text-emerald-300 {
+  color: #059669;
+}
+
+body.theme-light .text-amber-300 {
+  color: #b45309;
+}
+
+body.theme-light .text-blue-300 {
+  color: #2563eb;
+}
+
+body.theme-light .text-fuchsia-300 {
+  color: #a21caf;
+}
+
+body.theme-light .text-rose-300 {
+  color: #be123c;
+}
+
+body.theme-light .bg-midnight-veil {
+  background-color: #e2e8f0;
+}
+
+body.theme-light [class*="bg-white/5"] {
+  background-color: rgba(15, 23, 42, 0.04);
+}
+
+body.theme-light [class*="bg-white/10"] {
+  background-color: rgba(15, 23, 42, 0.08);
+}
+
+body.theme-light [class*="bg-slate-950/90"] {
+  background-color: rgba(241, 245, 249, 0.92);
+}
+
+body.theme-light [class*="bg-slate-900/90"] {
+  background-color: rgba(248, 250, 252, 0.96);
+}
+
+body.theme-light [class*="border-white/10"] {
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+body.theme-light .markdown {
+  color: #1f2937;
+}
+
+body.theme-light .markdown strong {
+  color: #0f172a;
+}
+
+body.theme-light .markdown a {
+  color: #0e7490;
+}
+
+body.theme-light .markdown code {
+  background: rgba(148, 163, 184, 0.25);
+}
+
+body.theme-light .markdown pre {
+  background: rgba(226, 232, 240, 0.8);
+}
+
+@keyframes swapPulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+}
+
+.swap-pulse {
+  animation-name: swapPulse;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+.markdown {
+  color: #e2e8f0;
+  line-height: 1.5;
+}
+
+.markdown p {
+  margin: 0.35rem 0 0;
+}
+
+.markdown ul,
+.markdown ol {
+  margin: 0.35rem 0 0.35rem 1rem;
+  padding: 0;
+}
+
+.markdown li {
+  margin: 0.15rem 0;
+}
+
+.markdown strong {
+  color: #f8fafc;
+}
+
+.markdown a {
+  color: #67e8f9;
+  text-decoration: underline;
+}
+
+.markdown code {
+  background: rgba(148, 163, 184, 0.15);
+  border-radius: 0.35rem;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.85em;
+}
+
+.markdown pre {
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 0.5rem;
+  padding: 0.6rem;
+  overflow-x: auto;
+}
+
+.markdown pre code {
+  background: transparent;
+  padding: 0;
+  font-size: 0.8em;
+}
