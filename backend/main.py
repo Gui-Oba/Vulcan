@@ -872,12 +872,16 @@ def build_system_prompt(system_data: Dict[str, object]) -> str:
         "to explain what is happening on the user's computer in simple terms. "
         "Be decisive and specific. If key data is missing, say what is missing and "
         "provide a concrete way to verify it. "
+        "You can reference: CPU per-core and total load, memory pressure + swap, "
+        "disk throughput/IOPS, network upload/download, latency/jitter, energy "
+        "wattage, thermal temperature/pressure (estimated if flagged), battery health, "
+        "top_processes, live flow destinations (world map), Sankey flows, and CO2e. "
         "If a graph shows high CPU, identify the most likely process from the "
-        "top_processes list. "
-        "If the question is about battery health, use health_percent and "
-        "current_capacity/design_capacity to explain why it may be low and what "
-        "the status implies. "
+        "top_processes list. If the question is about battery health, use "
+        "health_percent and current_capacity/design_capacity to explain why it may "
+        "be low and what the status implies. "
         "Format: 1 short paragraph, then 3 bullet next steps. "
+        "Keep the entire response under 120 words and end with a complete sentence. "
         f"Hardware snapshot: {data_blob}."
     )
 
@@ -888,13 +892,18 @@ def extract_response_text(response: object) -> str:
         return text
 
     candidates = getattr(response, "candidates", None) or []
+    collected: List[str] = []
     for candidate in candidates:
         content = getattr(candidate, "content", None)
         parts = getattr(content, "parts", None) or []
         for part in parts:
             part_text = getattr(part, "text", None)
             if part_text:
-                return part_text
+                collected.append(part_text)
+        if collected:
+            break
+    if collected:
+        return "\n".join(collected)
     return ""
 
 
@@ -914,7 +923,7 @@ def generate_explanation(system_data: Dict[str, object], user_query: str) -> str
         config=types.GenerateContentConfig(
             system_instruction=build_system_prompt(system_data),
             temperature=0.3,
-            max_output_tokens=600,
+            max_output_tokens=120000,
             response_mime_type="text/plain",
         ),
     )

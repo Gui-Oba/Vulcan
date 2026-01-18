@@ -3,7 +3,6 @@ import {
   Activity,
   ArrowDownLeft,
   ArrowUpRight,
-  CircleHelp,
   Cpu,
   Database,
   Globe2,
@@ -198,10 +197,14 @@ const SectionControls = ({ onHelp, isLight }) => {
       type="button"
       onClick={onHelp}
       className={`${baseClass} rounded-full p-2 transition`}
-      title="Ask about this section"
-      aria-label="Ask about this section"
-    >
-      <CircleHelp className="h-4 w-4" />
+    title="Ask about this section"
+    aria-label="Ask about this section"
+  >
+      <img
+        src="/Group 1.png"
+        alt="Help"
+        className="h-9 w-9 object-contain"
+      />
     </button>
   );
 };
@@ -235,11 +238,11 @@ const SectionChat = ({
     : "border-white/10 bg-cyan-400/20 text-cyan-200 hover:bg-cyan-400/40";
   const sideClass =
     side === "left"
-      ? "left-4 lg:-left-[320px]"
-      : "right-4 lg:-right-[320px]";
+      ? "left-4 lg:-left-[400px]"
+      : "right-4 lg:-right-[400px]";
   return (
     <div
-      className={`absolute top-12 z-30 w-72 max-w-[90vw] rounded-2xl border p-3 shadow-2xl backdrop-blur-xl ${panelClass} ${sideClass}`}
+      className={`absolute top-12 z-50 w-96 max-w-[92vw] rounded-2xl border p-3 shadow-2xl backdrop-blur-xl ${panelClass} ${sideClass}`}
     >
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-[0.25em]">
@@ -255,7 +258,7 @@ const SectionChat = ({
           <X className="h-4 w-4" />
         </button>
       </div>
-      <div className="mt-3 max-h-56 space-y-3 overflow-y-auto pr-1 text-xs">
+      <div className="mt-3 max-h-80 space-y-3 overflow-y-auto pr-1 text-xs">
         {messages.length === 0 ? (
           <p className="text-slate-400">
             Ask a question about this panel to get a focused explanation.
@@ -269,7 +272,7 @@ const SectionChat = ({
               }`}
             >
               <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400">
-                {message.role === "user" ? "You" : "Gemini"}
+                {message.role === "user" ? "You" : "Vulco"}
               </p>
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
@@ -282,7 +285,7 @@ const SectionChat = ({
         )}
         {isLoading && (
           <p className="text-xs text-slate-400">
-            Gemini is analyzing your system...
+            Vulco is analyzing your system...
           </p>
         )}
       </div>
@@ -306,12 +309,15 @@ const SectionChat = ({
   );
 };
 
-const SectionCard = ({ className, children, chat }) => (
-  <section className={`${className} relative`}>
-    {children}
-    {chat}
-  </section>
-);
+const SectionCard = ({ className, children, chat }) => {
+  const raised = Boolean(chat);
+  return (
+    <section className={`${className} relative ${raised ? "z-40" : ""}`}>
+      {children}
+      {chat}
+    </section>
+  );
+};
 
 export default function App() {
   const [metrics, setMetrics] = useState(null);
@@ -646,7 +652,7 @@ export default function App() {
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.4em] text-cyan-200/70">
-              OpVisualizer
+              Vulcan
             </p>
             <h1 className="mt-2 text-3xl font-semibold text-white md:text-4xl">
               Real-time System Monitor
