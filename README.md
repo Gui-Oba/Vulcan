@@ -1,4 +1,4 @@
-# OpVisualizer
+# Vulcan
 
 A real-time macOS system monitor with a FastAPI websocket backend and a React + Vite frontend. The dashboard focuses on live system telemetry (CPU, memory, disk, network, energy) and visualizes it with charts, a digital twin, and a world traffic map.
 
